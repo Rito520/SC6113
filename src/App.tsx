@@ -1,0 +1,12 @@
+import { useState } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { AppLayout } from './layouts/AppLayout'
+import { DashboardPage } from './pages/DashboardPage'
+import { ProjectsPage } from './pages/ProjectsPage'
+import { ProjectDetailPage } from './pages/ProjectDetailPage'
+import { CreateProjectPage } from './pages/CreateProjectPage'
+import { TransactionsPage } from './pages/TransactionsPage'
+import { EventsPage } from './pages/EventsPage'
+import { DisputesPage } from './pages/DisputesPage'
+import type { Role } from './types/domain'
+export default function App() { const [role, setRole] = useState<Role>('CLIENT'); return <Routes><Route element={<AppLayout role={role} setRole={setRole} />}><Route path="/" element={<DashboardPage />} /><Route path="/projects" element={<ProjectsPage />} /><Route path="/projects/new" element={<CreateProjectPage />} /><Route path="/projects/:id" element={<ProjectDetailPage />} /><Route path="/transactions" element={<TransactionsPage />} /><Route path="/events" element={<EventsPage />} /><Route path="/disputes" element={<DisputesPage />} /></Route><Route path="*" element={<Navigate to="/" replace />} /></Routes> }

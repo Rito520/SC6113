@@ -1,0 +1,5 @@
+import { useEffect, useState } from 'react'
+import { Status } from '../components/Status'
+import { projectApi } from '../services/api'
+import type { Transaction } from '../types/domain'
+export function TransactionsPage() { const [items, setItems] = useState<Transaction[]>([]); useEffect(() => { void projectApi.getTransactions().then(setItems) }, []); return <><div className="page-intro"><div><h2>Transaction history</h2><p>Mock history shape is ready for contract events or Backend data. Hashes are placeholders.</p></div></div><section className="panel table-wrap"><table><thead><tr><th>Type</th><th>Project</th><th>User</th><th>Amount</th><th>Timestamp</th><th>Status</th><th>Tx hash</th></tr></thead><tbody>{items.map((t) => <tr key={t.id}><td><b>{t.type}</b></td><td>{t.projectId}</td><td>{t.user}</td><td>{t.amountEth ? `${t.amountEth} ETH` : '—'}</td><td>{new Date(t.timestamp).toLocaleString()}</td><td><Status value={t.status} /></td><td><code>{t.hash}</code></td></tr>)}</tbody></table></section></> }
