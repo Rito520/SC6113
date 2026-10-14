@@ -1,0 +1,15 @@
+stateDiagram-v2
+  [*] --> PENDING
+  PENDING --> IN_PROGRESS: start
+  PENDING --> SUBMITTED: submit
+  IN_PROGRESS --> SUBMITTED: submit
+  SUBMITTED --> APPROVED: approve / claim after 7 days
+  SUBMITTED --> REJECTED: reject
+  REJECTED --> SUBMITTED: resubmit
+  SUBMITTED --> DISPUTED: dispute
+  REJECTED --> DISPUTED: dispute
+  PENDING --> DISPUTED: dispute (overdue)
+  IN_PROGRESS --> DISPUTED: dispute (overdue)
+  DISPUTED --> RESOLVED: Arbitrator decides
+  APPROVED --> [*]: Freelancer paid
+  RESOLVED --> [*]: Freelancer paid or Client refunded
