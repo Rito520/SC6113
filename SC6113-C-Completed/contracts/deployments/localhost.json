@@ -1,0 +1,64 @@
+{
+  "network": "localhost",
+  "chainId": 31337,
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "deployedAt": "2026-10-14T09:25:23.649Z",
+  "contracts": {
+    "RoleManager": {
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "txHash": "0x3f06761fa054e7f32262cbed4706b9725d35e8e86f87ae43e0e5f44ce9ef4042",
+      "blockNumber": 1,
+      "gasUsed": "587311",
+      "constructorArgs": [
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+      ]
+    },
+    "ProjectEscrow": {
+      "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "txHash": "0xb3fd4092bfc7d5a54f785ed7033f41025cd7d16be32c449ab23d22b4034e1495",
+      "blockNumber": 2,
+      "gasUsed": "2714228",
+      "constructorArgs": [
+        "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      ]
+    },
+    "DisputeManager": {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "txHash": "0x64949dd514692acbb0556e9762ec6062b933cb3382bd03a42c2c09a9ea95f070",
+      "blockNumber": 3,
+      "gasUsed": "801651",
+      "constructorArgs": [
+        "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+      ]
+    }
+  },
+  "setupTransactions": [
+    {
+      "label": "escrow.setDisputeManager",
+      "txHash": "0x33fb3145f24488024b1cc135993646aa4faa4f1d01c37c8aa471e3d00b0a788e",
+      "gasUsed": "50921"
+    },
+    {
+      "label": "client.registerAsClient",
+      "txHash": "0xd04194b1615ef6bb49a1019d161f1f781e4da7140729e3a79fc30abc786a9132",
+      "gasUsed": "50029"
+    },
+    {
+      "label": "freelancer.registerAsFreelancer",
+      "txHash": "0x743f4fdb928a853d3305c55c668d1193a49f4ac091d752d5c1246701a94df8fb",
+      "gasUsed": "50052"
+    },
+    {
+      "label": "admin.grantRole(ARBITRATOR)",
+      "txHash": "0x05b85f5557a2b18aa642f2c66e7dffbfc31a408f087152be5ca3a9bbec906054",
+      "gasUsed": "51485"
+    }
+  ],
+  "demoAccounts": {
+    "admin": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "client": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "freelancer": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+    "arbitrator": "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
+  }
+}

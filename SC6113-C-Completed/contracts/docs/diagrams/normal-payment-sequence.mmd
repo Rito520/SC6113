@@ -1,0 +1,21 @@
+sequenceDiagram
+  autonumber
+  actor C as Client
+  actor F as Freelancer
+  participant R as RoleManager
+  participant E as ProjectEscrow
+
+  C->>R: registerAsClient()
+  F->>R: registerAsFreelancer()
+  C->>E: createProject(freelancer, 10 ETH, deadline, metadataHash)
+  E->>R: hasRole(CLIENT, client), hasRole(FREELANCER, freelancer)
+  C->>E: addMilestone × 3 (3 + 3 + 4 ETH = total)
+  F->>E: acceptProject(projectId)
+  C->>E: fundProject(projectId) with 10 ETH
+  E->>E: project = ACTIVE, escrowBalance = 10 ETH
+  loop each milestone
+    F->>E: startMilestone / submitMilestone(projectId, i, deliverableHash)
+    C->>E: approveMilestone(projectId, i)
+    E-->>F: transfer milestone amount (ETH)
+  end
+  E->>E: project = COMPLETED

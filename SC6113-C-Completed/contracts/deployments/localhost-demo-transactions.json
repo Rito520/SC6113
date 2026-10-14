@@ -1,0 +1,164 @@
+[
+  {
+    "scenario": "A",
+    "type": "createProject",
+    "actor": "client",
+    "contract": "ProjectEscrow",
+    "txHash": "0x4a282861095852b8eb2097a3240798e5a9481e38721ebc9758a7d5b89be5d457",
+    "block": 8,
+    "gasUsed": "84614"
+  },
+  {
+    "scenario": "A",
+    "type": "addMilestone #0 (3 ETH)",
+    "actor": "client",
+    "contract": "ProjectEscrow",
+    "txHash": "0xb856b738275389a17f2fe9daa544967da5d7e28a05a68a00cf0d10bde36fed28",
+    "block": 9,
+    "gasUsed": "80475"
+  },
+  {
+    "scenario": "A",
+    "type": "addMilestone #1 (3 ETH)",
+    "actor": "client",
+    "contract": "ProjectEscrow",
+    "txHash": "0xbc7c7798b068380b6d3cf97e3b2f5b2200ccb83589547ebd16260bbbb297246a",
+    "block": 10,
+    "gasUsed": "63375"
+  },
+  {
+    "scenario": "A",
+    "type": "addMilestone #2 (4 ETH)",
+    "actor": "client",
+    "contract": "ProjectEscrow",
+    "txHash": "0x76686b8ed80772864584bd1b05e29e12b518fa16c558b6205441028edaeef4d1",
+    "block": 11,
+    "gasUsed": "63363"
+  },
+  {
+    "scenario": "A",
+    "type": "acceptProject",
+    "actor": "freelancer",
+    "contract": "ProjectEscrow",
+    "txHash": "0x9c577c0c9e723b3a8df405135d8408860232f7e1319e3c579876495443d15887",
+    "block": 12,
+    "gasUsed": "35213"
+  },
+  {
+    "scenario": "A",
+    "type": "fundProject (10 ETH)",
+    "actor": "client",
+    "contract": "ProjectEscrow",
+    "txHash": "0x50561949439483d56997bc3ce620e701185c7710e7aa38f0c216d14cef8a76f9",
+    "block": 13,
+    "gasUsed": "39862"
+  },
+  {
+    "scenario": "A",
+    "type": "startMilestone #0",
+    "actor": "freelancer",
+    "contract": "ProjectEscrow",
+    "txHash": "0x64566482fe7d0367acb959d3c88304a09ac7ea22d70dda2421f6d9f2c6185694",
+    "block": 14,
+    "gasUsed": "33153"
+  },
+  {
+    "scenario": "A",
+    "type": "submitMilestone #0",
+    "actor": "freelancer",
+    "contract": "ProjectEscrow",
+    "txHash": "0x6d151302249b193e797b37c0137c2b2946b0b20d5e67d8ce6c9875f790191cee",
+    "block": 15,
+    "gasUsed": "34446"
+  },
+  {
+    "scenario": "A",
+    "type": "approveMilestone #0 → pays 3 ETH",
+    "actor": "client",
+    "contract": "ProjectEscrow",
+    "txHash": "0x41c08dce97024dad63993a488c3d2bd148af3137fa47ff5538516cf1e1de9bff",
+    "block": 16,
+    "gasUsed": "56546"
+  },
+  {
+    "scenario": "B",
+    "type": "submitMilestone #1",
+    "actor": "freelancer",
+    "contract": "ProjectEscrow",
+    "txHash": "0x335cf0db763c53d9f15a729f8fc5c4b4dea2accd0629bd53cff6227f69f992b9",
+    "block": 17,
+    "gasUsed": "34418"
+  },
+  {
+    "scenario": "B",
+    "type": "rejectMilestone #1",
+    "actor": "client",
+    "contract": "ProjectEscrow",
+    "txHash": "0x7fdd4bac5c0af9cbfe80405dd6b635d57f05683ddaafa02dba3168b68fcb2e72",
+    "block": 18,
+    "gasUsed": "32053"
+  },
+  {
+    "scenario": "B",
+    "type": "resubmitMilestone #1",
+    "actor": "freelancer",
+    "contract": "ProjectEscrow",
+    "txHash": "0xcbef5259bc8960e86306f06653b5a9489b7e22e4f66253214c2f4018161e2d31",
+    "block": 19,
+    "gasUsed": "34401"
+  },
+  {
+    "scenario": "B",
+    "type": "rejectMilestone #1 (again)",
+    "actor": "client",
+    "contract": "ProjectEscrow",
+    "txHash": "0x6bbe3cb39ac205c4b32e12348e246b1454962a51c6b39cfc4ed7878d1509280b",
+    "block": 20,
+    "gasUsed": "32053"
+  },
+  {
+    "scenario": "B",
+    "type": "raiseDispute #1",
+    "actor": "freelancer",
+    "contract": "ProjectEscrow",
+    "txHash": "0x42f81812f346c12b4071efa0016c2a6e048d409239154dab025a3314471a1605",
+    "block": 21,
+    "gasUsed": "117123"
+  },
+  {
+    "scenario": "B",
+    "type": "submitEvidence",
+    "actor": "freelancer",
+    "contract": "DisputeManager",
+    "txHash": "0x5092b1438a26ac4eb3f4a27d751f3550c40d4453c506481792e067bd11e56dca",
+    "block": 22,
+    "gasUsed": "34076"
+  },
+  {
+    "scenario": "B",
+    "type": "resolveDispute → release",
+    "actor": "arbitrator",
+    "contract": "DisputeManager",
+    "txHash": "0xebf9956376a9c15cfa2efdc2effff014926ec1c7c747265445f8c5f62c2ad514",
+    "block": 23,
+    "gasUsed": "105339"
+  },
+  {
+    "scenario": "A",
+    "type": "submitMilestone #2",
+    "actor": "freelancer",
+    "contract": "ProjectEscrow",
+    "txHash": "0xaaa216cf012284b4b886838c3186bac8ac3fef37d447d4a997b78e5e6d593f1e",
+    "block": 24,
+    "gasUsed": "34418"
+  },
+  {
+    "scenario": "A",
+    "type": "approveMilestone #2 → completes",
+    "actor": "client",
+    "contract": "ProjectEscrow",
+    "txHash": "0x1707a6335e7fda8d16fa1a75e5e429c6a68db9d625c61f56488a043f4e788ab6",
+    "block": 25,
+    "gasUsed": "57939"
+  }
+]

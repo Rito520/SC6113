@@ -1,0 +1,11 @@
+File                   |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
+-----------------------|----------|----------|----------|----------|----------------|
+ contracts/            |      100 |    81.52 |      100 |      100 |                |
+  DisputeManager.sol   |      100 |    83.33 |      100 |      100 |                |
+  ProjectEscrow.sol    |      100 |    80.86 |      100 |      100 |                |
+  RoleManager.sol      |      100 |      100 |      100 |      100 |                |
+ contracts/interfaces/ |      100 |      100 |      100 |      100 |                |
+  IDisputeManager.sol  |      100 |      100 |      100 |      100 |                |
+  IProjectEscrow.sol   |      100 |      100 |      100 |      100 |                |
+-----------------------|----------|----------|----------|----------|----------------|
+All files              |      100 |    81.52 |      100 |      100 |                |

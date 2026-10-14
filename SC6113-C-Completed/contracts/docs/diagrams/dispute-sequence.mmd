@@ -1,0 +1,27 @@
+sequenceDiagram
+  autonumber
+  actor C as Client
+  actor F as Freelancer
+  actor A as Arbitrator
+  participant E as ProjectEscrow
+  participant D as DisputeManager
+  participant R as RoleManager
+
+  F->>E: submitMilestone(projectId, i, deliverableHash)
+  C->>E: rejectMilestone(projectId, i, reasonHash)
+  F->>E: raiseDispute(projectId, i, reasonHash)
+  E->>E: milestone = DISPUTED, project = DISPUTED (funds frozen)
+  E->>D: openDispute(projectId, i, freelancer, reasonHash)
+  D->>E: milestoneAmount(projectId, i)
+  D-->>E: disputeId
+  F->>D: submitEvidence(disputeId, evidenceHash)
+  A->>D: resolveDispute(disputeId, releaseToFreelancer, resolutionHash)
+  D->>R: hasRole(ARBITRATOR, arbitrator)?
+  D->>E: projectParties(projectId) (arbitrator must not be a party)
+  D->>E: executeResolution(projectId, i, releaseToFreelancer)
+  E->>E: milestone = RESOLVED, escrowBalance -= amount
+  alt releaseToFreelancer = true
+    E-->>F: transfer milestone amount (ETH)
+  else releaseToFreelancer = false
+    E-->>C: refund milestone amount (ETH)
+  end

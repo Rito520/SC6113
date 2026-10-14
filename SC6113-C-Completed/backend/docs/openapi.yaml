@@ -1,0 +1,190 @@
+openapi: 3.1.0
+info:
+  title: SC6113 Freelancer Milestone Payment API
+  version: 0.2.0
+  description: Member C REST API integrated with Member B's RoleManager, ProjectEscrow and DisputeManager. In EVM mode every state-changing record is accepted only after its MetaMask transaction is verified.
+servers:
+  - url: http://localhost:3001
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: {}
+    Milestone:
+      type: object
+      required: [id, projectId, title, description, amountEth, dueDate, status]
+      properties:
+        id: { type: string }
+        projectId: { type: string }
+        title: { type: string }
+        description: { type: string }
+        amountEth: { type: string, pattern: '^[0-9]+(\.[0-9]+)?$' }
+        dueDate: { type: string, format: date }
+        status: { type: string, enum: [PENDING, IN_PROGRESS, SUBMITTED, REJECTED, APPROVED, DISPUTED, RESOLVED] }
+        submissionNote: { type: string }
+        rejectionReason: { type: string }
+    Project:
+      type: object
+      required: [id, title, description, clientAddress, freelancerAddress, totalAmountEth, deadline, status, funded, milestones]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        clientAddress: { type: string }
+        clientName: { type: string }
+        freelancerAddress: { type: string }
+        freelancerName: { type: string }
+        totalAmountEth: { type: string }
+        deadline: { type: string, format: date }
+        status: { type: string, enum: [CREATED, ACCEPTED, FUNDED, ACTIVE, DISPUTED, COMPLETED, CANCELLED] }
+        funded: { type: boolean }
+        milestones:
+          type: array
+          items: { $ref: '#/components/schemas/Milestone' }
+paths:
+  /health:
+    get:
+      summary: Service health and chain gateway mode
+      responses:
+        '200': { description: Healthy }
+  /api/auth/nonce:
+    post:
+      summary: Create a wallet-signature challenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [wallet]
+              properties: { wallet: { type: string } }
+      responses:
+        '200': { description: Message ready for MetaMask signing }
+        '403': { description: Wallet is not registered, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /api/auth/verify:
+    post:
+      summary: Verify the signed challenge and issue a session token
+      responses:
+        '200': { description: Authenticated }
+        '401': { description: Invalid or expired signature }
+  /api/me:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Authenticated wallet identity and all on-chain roles
+      responses: { '200': { description: Current user } }
+  /api/dashboard:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Role-filtered dashboard metrics
+      responses: { '200': { description: Dashboard metrics } }
+  /api/projects:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Projects visible to the authenticated wallet
+      responses:
+        '200':
+          description: Project list
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Project' } }
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Verify createProjectWithMilestones and save project and milestone records
+      responses:
+        '201': { description: Created project }
+        '400': { description: Invalid amount, wallet, or deadline }
+        '403': { description: Client role required }
+  /api/projects/{id}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Read a project and its milestones
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Project, content: { application/json: { schema: { $ref: '#/components/schemas/Project' } } } }
+        '403': { description: Wallet is not associated with the project }
+        '404': { description: Project not found }
+  /api/projects/{id}/accept:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Assigned Freelancer accepts the project
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Accepted }, '409': { description: Invalid state } }
+  /api/projects/{id}/fund:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Client funds escrow in the configured gateway mode
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Funded }, '409': { description: Invalid state } }
+  /api/projects/{id}/cancel:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Verify cancelProject and mark the project cancelled
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Cancelled }, '409': { description: Invalid state } }
+  /api/milestones/{id}/start:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Verify startMilestone and mark the milestone in progress
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Started }, '409': { description: Invalid state } }
+  /api/milestones/{id}/submissions:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Submit or resubmit a milestone with off-chain evidence metadata
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '201': { description: Submission stored }, '409': { description: Invalid state } }
+  /api/milestones/{id}/rejections:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Client rejects a submitted milestone and records the reason
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Rejection stored }, '409': { description: Invalid state } }
+  /api/milestones/{id}/approvals:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Client approves a milestone in the configured gateway mode
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Approved }, '409': { description: Invalid state } }
+  /api/disputes:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Role-filtered dispute list
+      responses: { '200': { description: Disputes } }
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Client or Freelancer opens a milestone dispute
+      responses: { '201': { description: Dispute created }, '409': { description: Duplicate or invalid state } }
+  /api/disputes/{id}/resolution-record:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Arbitrator records release-to-Freelancer or refund-to-Client
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Resolution stored }, '403': { description: Arbitrator role required } }
+  /api/disputes/{id}/evidence:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Verify submitEvidence and save the full off-chain evidence text
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '201': { description: Evidence stored }, '403': { description: Project party required } }
+  /api/transactions:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Wallet-relevant transaction audit records
+      responses: { '200': { description: Transactions } }
+  /api/events:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Wallet-relevant decoded event records
+      responses: { '200': { description: Events } }

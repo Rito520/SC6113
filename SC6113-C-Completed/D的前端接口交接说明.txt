@@ -1,0 +1,507 @@
+SC6113 项目——C 提供给 D 的前端接口交接说明
+
+一、对接范围
+
+前端需要同时连接 B 的智能合约和 C 的 REST API。
+
+B 的合约负责角色、项目状态、托管资金、里程碑付款和争议裁决，是链上状态及资金的最终依据。C 的后端负责钱包登录、链下正文、数据库查询、Dashboard、交易历史和事件记录，并核验前端提交的真实交易。
+
+后端不保存私钥，也不会代替用户发送交易。所有改变链上状态的操作，都必须先由用户通过 MetaMask 调用合约。
+
+
+二、需要使用的文件
+
+REST API 文档：
+backend/docs/openapi.yaml
+
+REST API、合约函数和哈希对应规则：
+backend/docs/B-C-INTEGRATION.md
+
+合约 ABI：
+contracts/deployments/abi/RoleManager.json
+contracts/deployments/abi/ProjectEscrow.json
+contracts/deployments/abi/DisputeManager.json
+
+本地部署地址：
+contracts/deployments/localhost.json
+
+后端环境变量示例：
+backend/.env.example
+
+
+三、本地连接信息
+
+后端基础地址：
+http://localhost:3001
+
+健康检查：
+GET http://localhost:3001/health
+
+Hardhat 本地链：
+RPC URL：http://127.0.0.1:8545
+chain ID：31337
+MetaMask chain ID 十六进制：0x7a69
+货币符号：ETH
+
+当前本地首轮部署地址：
+RoleManager：0x5FbDB2315678afecb367f032d93F642f64180aa3
+ProjectEscrow：0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+DisputeManager：0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+
+这些地址只适用于当前 Hardhat 本地部署，不是 Sepolia 地址。Hardhat node 重启后需要重新部署，并再次核对 localhost.json；前端不能把旧地址写死后一直沿用。
+
+
+四、统一数据规则
+
+1. 钱包地址使用 0x 开头的 40 位 Ethereum 地址。
+
+2. ETH 金额必须使用字符串，不要使用 JavaScript number。例如：
+"1.5"
+
+3. 普通日期格式为：
+YYYY-MM-DD
+
+传给合约时，后端采用该日期 UTC 当天 00:00:00 对应的 Unix 秒：
+BigInt(Date.parse(date + "T00:00:00Z") / 1000)
+
+4. 交易哈希格式为 0x 加 64 位十六进制字符。
+
+5. 后端成功登录后，除登录接口外的 API 都需要请求头：
+Authorization: Bearer <token>
+
+Content-Type: application/json
+
+6. 统一错误格式：
+
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "具体错误说明",
+    "details": {}
+  }
+}
+
+details 不一定存在。前端应优先显示 message，同时保留 code 供程序判断。
+
+
+五、钱包角色和登录接口
+
+在 EVM 模式下，钱包必须先在 RoleManager 中拥有角色，才能向后端申请登录 nonce。
+
+Client 自助注册：
+RoleManager.registerAsClient()
+
+Freelancer 自助注册：
+RoleManager.registerAsFreelancer()
+
+Arbitrator 不能自行注册，需要管理员通过 RoleManager.grantRole 授权。
+
+同一个钱包可能同时拥有 Client 和 Freelancer 等多个角色。前端应读取后端返回的 roles 数组，不要只假设每个钱包只有一个角色。
+
+1. 申请登录消息
+
+POST /api/auth/nonce
+
+请求：
+{
+  "wallet": "0x..."
+}
+
+返回的主要字段：
+{
+  "wallet": "0x...",
+  "message": "需要 MetaMask 签名的完整消息",
+  "expiresAt": "ISO 8601 时间"
+}
+
+前端使用 personal_sign 或 signer.signMessage 对 message 原文签名。登录签名不是链上交易，不消耗 Gas。
+
+2. 验证签名
+
+POST /api/auth/verify
+
+请求：
+{
+  "wallet": "0x...",
+  "signature": "0x..."
+}
+
+返回的主要字段：
+{
+  "token": "Bearer token",
+  "expiresAt": "ISO 8601 时间",
+  "user": {
+    "wallet": "0x...",
+    "role": "CLIENT",
+    "roles": ["CLIENT"],
+    "displayName": "..."
+  }
+}
+
+3. 查询当前用户
+
+GET /api/me
+
+返回当前钱包、主要角色、全部角色和显示名称。
+
+MetaMask 切换账号或网络后，前端应清除旧 token，并重新执行 nonce 和签名流程。
+
+
+六、链上写操作的统一顺序
+
+EVM 模式下，每个写操作必须遵守下面的顺序：
+
+第一步：前端根据正文计算规定的 bytes32 哈希。
+第二步：用户通过 MetaMask 调用对应的 B 合约函数。
+第三步：等待交易成功并取得 receipt 和 transactionHash。
+第四步：调用对应的 C REST API，把 transactionHash 和完整链下正文一起提交。
+第五步：C 检查 chain ID、交易状态、确认数、发送人、目标合约、函数、参数、ETH 数额和事件。
+第六步：核验成功后，C 才会保存链下数据并返回最新项目状态。
+
+不能先调用写入型 REST API，再等待合约交易。交易失败、用户拒绝签名或 receipt 状态失败时，不要调用对应 REST API。
+
+
+七、哈希计算规则
+
+统一算法：
+keccak256(toUtf8Bytes(JSON.stringify(value)))
+
+JSON 属性名称和顺序必须严格保持一致。
+
+项目 metadataHash：
+{ title, description }
+
+里程碑 metadataHash：
+{ title, description }
+
+提交 deliverableHash：
+{ note, evidenceUrl }
+
+如果没有 evidenceUrl，必须明确使用 null，不能省略这个属性：
+{ note: "...", evidenceUrl: null }
+
+拒绝 reasonHash：
+{ reason }
+
+争议 reasonHash：
+{ description }
+
+争议证据 evidenceHash：
+{ evidence }
+
+裁决 resolutionHash：
+{ resolution }
+
+推荐前端统一封装一个 hashJson 函数，避免每个页面分别计算导致格式不一致。
+
+
+八、项目与里程碑接口
+
+1. 查询项目列表
+
+GET /api/projects
+
+后端根据登录钱包返回其作为 Client、Freelancer 或 Arbitrator 可以访问的项目。
+
+2. 查询单个项目
+
+GET /api/projects/:id
+
+这里的 id 是 C 返回的本地项目 id，例如 P-XXXXXXXX，不是合约中的数字 projectId。
+
+项目主要返回字段：
+id、chainProjectId、title、description、clientAddress、clientName、freelancerAddress、freelancerName、totalAmountEth、deadline、status、funded、milestones、createdAt、updatedAt。
+
+里程碑主要返回字段：
+id、projectId、chainMilestoneId、title、description、amountEth、dueDate、status、submissionNote、rejectionReason。
+
+3. 创建项目
+
+链上先调用：
+ProjectEscrow.createProjectWithMilestones(
+  freelancerAddress,
+  deadlineUnixSeconds,
+  projectMetadataHash,
+  milestoneAmountsWei[],
+  milestoneDueDatesUnixSeconds[],
+  milestoneMetadataHashes[]
+)
+
+交易确认后调用：
+POST /api/projects
+
+请求：
+{
+  "title": "Project title",
+  "description": "Project description",
+  "freelancerAddress": "0x...",
+  "totalAmountEth": "3",
+  "deadline": "2026-12-31",
+  "transactionHash": "0x...",
+  "milestones": [
+    {
+      "title": "Milestone 1",
+      "description": "Milestone description",
+      "amountEth": "1",
+      "dueDate": "2026-11-30"
+    }
+  ]
+}
+
+所有 milestone amount 的总和必须等于 totalAmountEth。后端会从 ProjectCreated 和 MilestoneAdded 事件取得链上 ID，前端不要自行编造 chainProjectId 或 chainMilestoneId。
+
+4. Freelancer 接受项目
+
+链上：
+ProjectEscrow.acceptProject(chainProjectId)
+
+REST：
+POST /api/projects/:localProjectId/accept
+
+请求：
+{
+  "transactionHash": "0x..."
+}
+
+5. Client 支付项目资金
+
+链上：
+ProjectEscrow.fundProject(chainProjectId)
+
+MetaMask 交易的 value 必须等于项目 totalAmountEth 对应的 wei。
+
+REST：
+POST /api/projects/:localProjectId/fund
+
+请求：
+{
+  "transactionHash": "0x..."
+}
+
+合约同时支持 create → accept → fund 和 create → fund → accept 两种顺序。只有接受和付款都完成后，项目才会变为 ACTIVE。
+
+6. Client 取消项目
+
+链上：
+ProjectEscrow.cancelProject(chainProjectId)
+
+REST：
+POST /api/projects/:localProjectId/cancel
+
+请求：
+{
+  "transactionHash": "0x..."
+}
+
+只能在工作正式开始前，按照合约允许的状态取消。
+
+7. Freelancer 开始里程碑
+
+链上：
+ProjectEscrow.startMilestone(chainProjectId, chainMilestoneIndex)
+
+REST：
+POST /api/milestones/:localMilestoneId/start
+
+请求：
+{
+  "transactionHash": "0x..."
+}
+
+8. Freelancer 提交或重新提交里程碑
+
+首次提交使用：
+ProjectEscrow.submitMilestone(chainProjectId, chainMilestoneIndex, deliverableHash)
+
+被拒绝后重新提交使用：
+ProjectEscrow.resubmitMilestone(chainProjectId, chainMilestoneIndex, deliverableHash)
+
+REST：
+POST /api/milestones/:localMilestoneId/submissions
+
+请求：
+{
+  "note": "提交说明",
+  "evidenceUrl": "https://example.com/file",
+  "transactionHash": "0x..."
+}
+
+evidenceUrl 可以不提供，但计算哈希时仍需将 evidenceUrl 设为 null。
+
+9. Client 拒绝里程碑
+
+链上：
+ProjectEscrow.rejectMilestone(chainProjectId, chainMilestoneIndex, reasonHash)
+
+REST：
+POST /api/milestones/:localMilestoneId/rejections
+
+请求：
+{
+  "reason": "拒绝原因",
+  "transactionHash": "0x..."
+}
+
+10. Client 批准里程碑
+
+链上：
+ProjectEscrow.approveMilestone(chainProjectId, chainMilestoneIndex)
+
+REST：
+POST /api/milestones/:localMilestoneId/approvals
+
+请求：
+{
+  "transactionHash": "0x..."
+}
+
+11. Freelancer 在审核超时后领取
+
+超过合约 REVIEW_PERIOD 后，Freelancer 可以调用：
+ProjectEscrow.claimAfterReview(chainProjectId, chainMilestoneIndex)
+
+交易成功后同样调用：
+POST /api/milestones/:localMilestoneId/approvals
+
+请求仍然只需要 transactionHash。后端会根据交易发送人判断这是 Client approveMilestone，还是 Freelancer claimAfterReview。
+
+
+九、争议接口
+
+1. 查询争议
+
+GET /api/disputes
+
+普通项目成员只能看到自己的争议；Arbitrator 可以看到需要处理的争议。
+
+2. Client 或 Freelancer 发起争议
+
+链上：
+ProjectEscrow.raiseDispute(chainProjectId, chainMilestoneIndex, reasonHash)
+
+REST：
+POST /api/disputes
+
+请求：
+{
+  "projectId": "P-XXXXXXXX",
+  "milestoneId": "M-XXXXXXXX",
+  "description": "争议说明",
+  "transactionHash": "0x..."
+}
+
+后端从 DisputeRaised 事件取得合约 disputeId。
+
+3. 项目成员提交争议证据
+
+链上：
+DisputeManager.submitEvidence(chainDisputeId, evidenceHash)
+
+REST：
+POST /api/disputes/:localDisputeId/evidence
+
+请求：
+{
+  "evidence": "证据说明或文件引用",
+  "transactionHash": "0x..."
+}
+
+4. Arbitrator 裁决争议
+
+支付给 Freelancer：
+releaseToFreelancer = true
+
+退款给 Client：
+releaseToFreelancer = false
+
+链上：
+DisputeManager.resolveDispute(chainDisputeId, releaseToFreelancer, resolutionHash)
+
+REST：
+POST /api/disputes/:localDisputeId/resolution-record
+
+请求：
+{
+  "resolution": "RELEASE_TO_FREELANCER",
+  "transactionHash": "0x..."
+}
+
+或：
+{
+  "resolution": "REFUND_TO_CLIENT",
+  "transactionHash": "0x..."
+}
+
+
+十、Dashboard、交易和事件查询
+
+GET /api/dashboard
+
+返回与当前钱包相关的项目数量、Active 项目、Completed 项目、Open disputes、Submitted milestones、托管金额和已释放金额。
+
+GET /api/transactions
+GET /api/transactions?projectId=P-XXXXXXXX
+
+主要返回字段：
+id、type、projectId、user、amountEth、timestamp、status、hash。
+
+GET /api/events
+GET /api/events?projectId=P-XXXXXXXX
+
+主要返回字段：
+id、eventName、projectId、actor、details、timestamp、txHash。
+
+
+十一、前端需要处理的状态
+
+Project status：
+CREATED
+ACCEPTED
+FUNDED
+ACTIVE
+DISPUTED
+COMPLETED
+CANCELLED
+
+Milestone status：
+PENDING
+IN_PROGRESS
+SUBMITTED
+REJECTED
+APPROVED
+DISPUTED
+RESOLVED
+
+前端按钮应根据后端状态和当前钱包角色显示，同时仍需处理合约 revert、用户拒绝 MetaMask、网络错误和交易等待状态。
+
+建议至少区分以下 UI 状态：
+等待用户签名、交易广播中、等待确认、后端记录中、成功、用户拒绝、合约失败、后端核验失败。
+
+
+十二、常见错误及前端处理
+
+AUTH_REQUIRED：没有 Bearer token。
+SESSION_EXPIRED：登录已过期，需要重新签名。
+UNREGISTERED_ON_CHAIN：钱包还没有 RoleManager 角色。
+FORBIDDEN_ROLE：当前钱包没有所需角色。
+PROJECT_ACCESS_DENIED：当前钱包不是该项目参与者。
+INVALID_STATE_TRANSITION：当前状态不允许该操作。
+TRANSACTION_HASH_REQUIRED：EVM 模式缺少 transactionHash。
+TRANSACTION_NOT_MINED：交易尚未确认，可稍后重试。
+TRANSACTION_REVERTED：链上交易失败。
+WRONG_CHAIN：钱包或 RPC 网络不正确。
+WRONG_CONTRACT：交易发给了错误的合约。
+WRONG_TRANSACTION_SENDER：交易发送人与登录钱包不一致。
+WRONG_CONTRACT_FUNCTION：调用函数与 REST 操作不一致。
+TRANSACTION_ARGUMENT_MISMATCH：链上参数与 REST 正文不一致，通常需要检查哈希、ID 或日期。
+TRANSACTION_VALUE_MISMATCH：fundProject 的 ETH 数额不正确。
+INSUFFICIENT_CONFIRMATIONS：确认数不足，可稍后重试。
+
+对于 TRANSACTION_NOT_MINED 和 INSUFFICIENT_CONFIRMATIONS，前端可以保留 transactionHash 并允许重试 REST 记录。对于参数、发送人或合约不一致，不能自动重试原请求，应提示用户或开发者检查交易。
+
+
+十三、目前的范围限制
+
+当前地址和实际测试结果来自 Hardhat 本地链。尚未提供 Sepolia 地址和公开后端域名，因此前端现阶段先按本地环境对接。
+
+目前已经完成 B/C 的本地回执验证，但尚未验证 D 前端的完整浏览器流程。D 接入后，需要由 D、C 和 E 一起测试 MetaMask 切换账号、切换网络、拒绝签名、交易失败和完整项目流程。

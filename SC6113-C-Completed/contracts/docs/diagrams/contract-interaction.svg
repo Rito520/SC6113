@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f5fc4"/></marker>
+    <marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b36b00"/></marker>
+    <marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#777"/></marker>
+    <marker id="ahe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1b8a4a"/></marker>
+    <style>
+      .actor rect { fill: #eaf1ff; stroke: #2f5fc4; stroke-width: 1.5; }
+      .actor text { fill: #0e2557; font-size: 16px; font-weight: 600; text-anchor: middle; }
+      .ct rect { fill: #fff6e5; stroke: #b36b00; stroke-width: 2; }
+      .ct .name { fill: #3d2600; font-size: 19px; font-weight: 700; text-anchor: middle; }
+      .ct .sub { fill: #5a4320; font-size: 13px; text-anchor: middle; }
+      .call { stroke: #2f5fc4; stroke-width: 1.6; fill: none; marker-end: url(#ahb); }
+      .cc { stroke: #b36b00; stroke-width: 3; fill: none; marker-end: url(#aho); }
+      .role { stroke: #777; stroke-width: 1.4; stroke-dasharray: 6 5; fill: none; marker-end: url(#ahg); }
+      .eth { stroke: #1b8a4a; stroke-width: 2.2; stroke-dasharray: 2 4; stroke-linecap: round; fill: none; marker-end: url(#ahe); }
+      .lbl { font-size: 13px; fill: #1d3a7a; }
+      .lblc { font-size: 13.5px; fill: #7a4a00; font-weight: 600; }
+      .lblg { font-size: 12.5px; fill: #555; font-style: italic; }
+      .lble { font-size: 13px; fill: #1b6b3a; font-weight: 600; }
+      .badge circle { fill: #2f5fc4; }
+      .badge text { fill: #fff; font-size: 13px; font-weight: 700; text-anchor: middle; }
+      .legend { font-size: 13.5px; fill: #222; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1400" height="900" fill="#ffffff"/>
+
+  <!-- actors -->
+  <g class="actor"><rect x="40" y="40" width="160" height="44" rx="22"/><text x="120" y="67">Admin</text></g>
+  <g class="actor"><rect x="360" y="40" width="160" height="44" rx="22"/><text x="440" y="67">Client</text></g>
+  <g class="actor"><rect x="660" y="40" width="160" height="44" rx="22"/><text x="740" y="67">Freelancer</text></g>
+  <g class="actor"><rect x="1100" y="40" width="160" height="44" rx="22"/><text x="1180" y="67">Arbitrator</text></g>
+
+  <!-- contracts -->
+  <g class="ct">
+    <rect x="380" y="260" width="500" height="200" rx="8"/>
+    <text class="name" x="630" y="294">ProjectEscrow</text>
+    <text class="sub" x="630" y="320">projects · milestones · holds the ETH escrow</text>
+    <text class="sub" x="630" y="342">project: CREATED → ACCEPTED / FUNDED → ACTIVE → COMPLETED</text>
+    <text class="sub" x="630" y="364">milestone: PENDING → SUBMITTED → APPROVED / REJECTED</text>
+    <text class="sub" x="630" y="386">per-project escrowBalance · pays on approval</text>
+    <text class="sub" x="630" y="408">ReentrancyGuard · Pausable · custom errors</text>
+    <text class="sub" x="630" y="430">fallback pendingWithdrawals if a transfer is rejected</text>
+  </g>
+  <g class="ct">
+    <rect x="1020" y="300" width="320" height="100" rx="8"/>
+    <text class="name" x="1180" y="328">DisputeManager</text>
+    <text class="sub" x="1180" y="350">dispute records · evidence log</text>
+    <text class="sub" x="1180" y="368">binary decision: release or refund</text>
+    <text class="sub" x="1180" y="386">holds no ETH</text>
+  </g>
+  <g class="ct">
+    <rect x="60" y="640" width="1280" height="80" rx="8"/>
+    <text class="name" x="700" y="672">RoleManager (OpenZeppelin AccessControl)</text>
+    <text class="sub" x="700" y="698">ADMIN_ROLE · CLIENT_ROLE · FREELANCER_ROLE · ARBITRATOR_ROLE   |   rolesOf(address) for role-based dashboards</text>
+  </g>
+
+  <!-- contract to contract -->
+  <path class="cc" d="M880,330 L1016,330"/>
+  <text class="lblc" x="950" y="320" text-anchor="middle">openDispute()</text>
+  <path class="cc" d="M1020,390 L884,390"/>
+  <text class="lblc" x="908" y="412">executeResolution()</text>
+  <text class="lblc" x="908" y="430">projectParties()</text>
+  <text class="lblc" x="908" y="448">milestoneAmount()</text>
+
+  <!-- role checks -->
+  <path class="role" d="M630,460 L630,638"/>
+  <text class="lblg" x="622" y="560" text-anchor="end">hasRole(CLIENT / FREELANCER / ADMIN)</text>
+  <path class="role" d="M1180,400 L1180,638"/>
+  <text class="lblg" x="1188" y="560">hasRole(ARBITRATOR)</text>
+
+  <!-- Admin -->
+  <path class="call" d="M70,84 L70,250 L36,250 L36,680 L58,680"/>
+  <g class="badge"><circle cx="36" cy="470" r="12"/><text x="36" y="475">4</text></g>
+  <path class="call" d="M200,70 C300,110 360,180 405,258"/>
+  <g class="badge"><circle cx="300" cy="125" r="12"/><text x="300" y="130">3</text></g>
+
+  <!-- Client -->
+  <path class="call" d="M380,84 L380,200 L330,200 L330,638"/>
+  <text class="lbl" x="322" y="560" transform="rotate(-90 322 560)">registerAsClient</text>
+  <path class="call" d="M425,84 L455,258"/>
+  <g class="badge"><circle cx="438" cy="165" r="12"/><text x="438" y="170">1</text></g>
+  <path class="eth" d="M500,258 L478,90"/>
+  <text class="lble" x="496" y="190">ETH refund</text>
+  <path class="call" d="M440,40 L440,22 L1000,22 L1000,170 C1030,220 1060,260 1075,298"/>
+  <text class="lbl" x="560" y="17">submitEvidence</text>
+
+  <!-- Freelancer -->
+  <path class="call" d="M720,84 L700,258"/>
+  <g class="badge"><circle cx="711" cy="165" r="12"/><text x="711" y="170">2</text></g>
+  <path class="eth" d="M780,258 L766,90"/>
+  <text class="lble" x="784" y="190">ETH payment</text>
+  <path class="call" d="M820,66 C900,110 1000,200 1050,298"/>
+  <text class="lbl" x="880" y="120">submitEvidence</text>
+  <path class="call" d="M810,84 L898,200 L898,638"/>
+  <text class="lbl" x="890" y="625" transform="rotate(-90 890 625)">registerAsFreelancer</text>
+
+  <!-- Arbitrator -->
+  <path class="call" d="M1180,84 L1180,298"/>
+  <text class="lbl" x="1188" y="200">resolveDispute(release | refund)</text>
+
+  <!-- legend -->
+  <rect x="60" y="750" width="1280" height="136" rx="8" fill="#fafafa" stroke="#ddd"/>
+  <g class="badge"><circle cx="86" cy="776" r="11"/><text x="86" y="781">1</text></g>
+  <text class="legend" x="106" y="781">Client → Escrow: createProject · createProjectWithMilestones · addMilestone · fundProject (ETH) · approveMilestone</text>
+  <text class="legend" x="106" y="801">rejectMilestone · raiseDispute · cancelProject</text>
+  <g class="badge"><circle cx="86" cy="826" r="11"/><text x="86" y="831">2</text></g>
+  <text class="legend" x="106" y="831">Freelancer → Escrow: acceptProject · startMilestone · submitMilestone · resubmitMilestone · claimAfterReview · raiseDispute</text>
+  <g class="badge"><circle cx="86" cy="854" r="11"/><text x="86" y="859">3</text></g>
+  <text class="legend" x="106" y="859">Admin → Escrow: setDisputeManager · pause · unpause</text>
+  <g class="badge"><circle cx="560" cy="854" r="11"/><text x="560" y="859">4</text></g>
+  <text class="legend" x="580" y="859">Admin → RoleManager: grantRole / revokeRole (ARBITRATOR)</text>
+  
+  <line x1="1060" y1="776" x2="1100" y2="776" stroke="#2f5fc4" stroke-width="1.6" marker-end="url(#ahb)"/>
+  <text class="legend" x="1110" y="781">MetaMask-signed tx</text>
+  <line x1="1060" y1="804" x2="1100" y2="804" stroke="#b36b00" stroke-width="3" marker-end="url(#aho)"/>
+  <text class="legend" x="1110" y="809">contract call</text>
+  <line x1="1060" y1="832" x2="1100" y2="832" stroke="#777" stroke-width="1.4" stroke-dasharray="6 5" marker-end="url(#ahg)"/>
+  <text class="legend" x="1110" y="837">role check (view)</text>
+  <line x1="1060" y1="860" x2="1100" y2="860" stroke="#1b8a4a" stroke-width="2.2" stroke-dasharray="2 4" marker-end="url(#ahe)"/>
+  <text class="legend" x="1110" y="865">ETH transfer out</text>
+</svg>

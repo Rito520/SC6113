@@ -1,0 +1,16 @@
+stateDiagram-v2
+  direction LR
+  [*] --> CREATED: create + add milestones (Client)
+  CREATED --> ACCEPTED: accept
+  CREATED --> FUNDED: fund
+  ACCEPTED --> ACTIVE: fund
+  FUNDED --> ACTIVE: accept
+  CREATED --> CANCELLED: cancel
+  ACCEPTED --> CANCELLED: cancel
+  FUNDED --> CANCELLED: cancel + refund
+  ACTIVE --> DISPUTED: dispute
+  DISPUTED --> ACTIVE: all disputes resolved
+  ACTIVE --> COMPLETED: last milestone settled
+  DISPUTED --> COMPLETED: last milestone settled
+  COMPLETED --> [*]
+  CANCELLED --> [*]
