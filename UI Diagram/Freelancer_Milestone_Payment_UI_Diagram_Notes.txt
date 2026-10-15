@@ -1,0 +1,9 @@
+Figure X. Role-Based User Interface Structure of the Freelancer Milestone Payment DApp
+
+Figure explanation (106 words)
+This diagram presents the current role-based user interface of the Freelancer Milestone Payment DApp. All users first connect MetaMask and sign a wallet-authentication message. After their on-chain roles are identified, signed-in users share access to the Dashboard, Projects, Transaction History, Event Logs, Disputes, and authorised project-detail views. The Client workspace exposes project creation, escrow funding, milestone review, cancellation, and dispute actions. The Freelancer workspace supports assigned-project acceptance, milestone progress and submission, resubmission, post-review claiming, and dispute actions. The Arbitrator uses the Disputes page to review open cases and choose either release to freelancer or refund client. Transactions and event logs provide shared, read-only audit visibility.
+
+UI / Requirement Difference
+- Requirements describe an authorised Arbitrator, but the current frontend has no Arbitrator self-registration or administrator-approval screen; access is assumed after sign-in.
+- Evidence is entered through browser prompts as text or a URL. There is no file-upload page or evidence-management screen.
+- The diagram reflects current routed UI only. It does not show unimplemented gas previews, history filters/exports, a visible retry-recording control, or a one-click network-switch interface.
